@@ -1,4 +1,5 @@
-from django.shortcuts import render, reverse
+from django.http import HttpResponse
+from django.shortcuts import render
 
 DATA = {
     'omlet': {
@@ -19,25 +20,25 @@ DATA = {
 }
 
 
-def home_view(request):
+def home(request):
+    return HttpResponse('Всем привет! Укажите, пожалуйста, название рецепта.')
+
+
+def recipes_view(request):
     template_name = 'calculator/index.html'
 
-    pages = {
-        'Омлет': reverse('omlet'),
-        'Паста': reverse('pasta'),
-        'Бутерброд': reverse('buter')
-    }
+    recipe_req = str(request.path).replace("/", "")
 
-    context = {
-        'recipe': pages
-    }
-    return render(request, template_name, context)
+    servings = int(request.GET.get('servings', 1))
+    edited_recipe = ingredients_counting(recipe_req, servings)
+
+    return render(request, template_name, context={'recipe': edited_recipe})
 
 
-# В качестве контекста должен быть передан словарь с рецептом:
-# context = {
-#   'recipe': {
-#     'ингредиент1': количество1,
-#     'ингредиент2': количество2,
-#   }
-# }
+def ingredients_counting(recipe, count):
+    counted_recipe = {}
+
+    for ingredient, amount in DATA[recipe].items():
+        counted_recipe[ingredient] = amount * count
+
+    return counted_recipe
